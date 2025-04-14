@@ -1,0 +1,21 @@
+import sys
+from src.logger import logging
+
+def error_message_details(error, error_detail: sys):
+    """
+    Returns a string with detailed error message including filename and line number.
+    """
+    _, _, exc_tb = error_detail.exc_info()
+    file_name = exc_tb.tb_frame.f_code.co_filename
+    return f"Error in script: [{file_name}] at line [{exc_tb.tb_lineno}]: {str(error)}"
+
+class CustomException(Exception):
+    """
+    Custom exception for centralized error handling.
+    """
+    def __init__(self, error_message, error_detail: sys):
+        super().__init__(error_message)
+        self.error_message = error_message_details(error_message, error_detail)
+
+    def __str__(self):
+        return self.error_message
