@@ -6,8 +6,10 @@ from typing import Dict
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-
 from sklearn.metrics import accuracy_score
+
+import mlflow
+import mlflow.sklearn
 
 from src.logger import logging
 from src.exception import CustomException
@@ -56,7 +58,6 @@ class ModelTrainer:
                 }
             }
 
-            # Evaluate all models using GridSearchCV
             model_report = evaluate_models(X_train, y_train, X_test, y_test, models, params)
             best_score = max(model_report.values())
             best_model_name = max(model_report, key=model_report.get)
@@ -64,20 +65,30 @@ class ModelTrainer:
 
             logging.info(f"Best model: {best_model_name} with score: {best_score}")
 
-            # Reject model if accuracy is below threshold
             if best_score < 0.85:
-                raise CustomException(f"No good model found. Best score: {best_score}")
+                raise CustomException(f"No good model found. Best score: {best_score}", sys)
 
-            # Retrain best model on full train set with best params
-            best_model.fit(X_train, y_train)
+            # Start MLflow experiment logging
+            mlflow.set_experiment("BreastCancer_Classification")
+
+            with mlflow.start_run():
+                mlflow.log_param("model_name", best_model_name)
+                for param_name, param_value in params[best_model_name].items():
+                    mlflow.log_param(param_name, param_value)
+
+                # Train and evaluate model
+                best_model.fit(X_train, y_train)
+                y_pred = best_model.predict(X_test)
+                final_accuracy = accuracy_score(y_test, y_pred)
+
+                mlflow.log_metric("accuracy", final_accuracy)
+                mlflow.sklearn.log_model(best_model, "model")
+
+                logging.info(f"MLflow logging completed with accuracy: {final_accuracy:.4f}")
+
             save_object(self.config.trained_model_path, best_model)
-
             logging.info(f"Trained model saved to: {self.config.trained_model_path}")
 
-            y_pred = best_model.predict(X_test)
-            final_accuracy = accuracy_score(y_test, y_pred)
-
-            logging.info(f"Final Accuracy on Test Set: {final_accuracy}")
             return final_accuracy
 
         except Exception as e:
