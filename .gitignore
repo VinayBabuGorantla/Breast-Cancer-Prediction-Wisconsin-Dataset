@@ -5,7 +5,8 @@ __pycache__/
 __pycache__/
 .vscode/
 .idea/
-artifacts/
+artifacts/*
+!artifacts/*.dvc
 logs/
 .env
 .DS_Store

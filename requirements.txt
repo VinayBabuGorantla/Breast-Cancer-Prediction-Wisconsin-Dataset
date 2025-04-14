@@ -9,4 +9,5 @@ pyyaml
 Flask
 joblib
 dill
+dvc
 -e .
