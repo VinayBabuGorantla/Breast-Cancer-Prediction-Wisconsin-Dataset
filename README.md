@@ -14,5 +14,5 @@ The project is production-ready, using a modular structure with:
 - ✅ Logging and Exception Handling  
 - ✅ Git & DVC for experiment tracking and data versioning  
 - ✅ MLflow for model tracking and metrics  
-- ✅ Docker for containerization and deployment
+- ✅ Docker for containerization and deploymentt
 
